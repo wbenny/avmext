@@ -13,11 +13,26 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\i386">
-      <UniqueIdentifier>{8407f6c8-7d87-4280-9cd2-1d4e0b1b6a1a}</UniqueIdentifier>
+    <Filter Include="Source Files\rdtsc">
+      <UniqueIdentifier>{b7f19b28-7a95-480e-9ac4-c0859b859009}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\amd64">
-      <UniqueIdentifier>{954fbf72-c47e-4069-9ade-92bc2bd58cdc}</UniqueIdentifier>
+    <Filter Include="Header Files\rdtsc">
+      <UniqueIdentifier>{b73d5c4f-d352-4736-b43b-a589c3c0fe9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\rdtsc\i386">
+      <UniqueIdentifier>{4862b8bf-eb04-4a2e-b2ac-8aeea38a40cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\rdtsc\amd64">
+      <UniqueIdentifier>{140d01e0-ad90-46c3-88b5-39caccfa1231}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hook">
+      <UniqueIdentifier>{ee7ba292-ce06-46a0-ad06-6cf6de881a06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hook">
+      <UniqueIdentifier>{9d769560-2ff7-42f2-a69a-a55e395bc4a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\nt">
+      <UniqueIdentifier>{b97aede4-654e-45e8-b4f1-88b22d679b81}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -27,14 +42,23 @@
     <ClCompile Include="entry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ntinternal.c">
+    <ClCompile Include="rdtsc\rdtscemu.c">
+      <Filter>Source Files\rdtsc</Filter>
+    </ClCompile>
+    <ClCompile Include="rdtsc\rdtscemup.c">
+      <Filter>Source Files\rdtsc</Filter>
+    </ClCompile>
+    <ClCompile Include="hook\hook.c">
+      <Filter>Source Files\hook</Filter>
+    </ClCompile>
+    <ClCompile Include="memory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rdtscemup.c">
+    <ClCompile Include="image.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rdtscemu.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="hook\hookp.c">
+      <Filter>Source Files\hook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -44,27 +68,42 @@
     <ClInclude Include="entry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rdtscemu.h">
+    <ClInclude Include="rdtsc\rdtscemu.h">
+      <Filter>Header Files\rdtsc</Filter>
+    </ClInclude>
+    <ClInclude Include="hook\hook.h">
+      <Filter>Header Files\hook</Filter>
+    </ClInclude>
+    <ClInclude Include="nt\ntinternal.h">
+      <Filter>Header Files\nt</Filter>
+    </ClInclude>
+    <ClInclude Include="memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ntinternal.h">
+    <ClInclude Include="image.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nt\ntapi.h">
+      <Filter>Header Files\nt</Filter>
+    </ClInclude>
+    <ClInclude Include="nt\rtlapi.h">
+      <Filter>Header Files\nt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="i386\trap.asm">
-      <Filter>Source Files\i386</Filter>
-    </MASM>
-    <MASM Include="amd64\trap.asm">
-      <Filter>Source Files\amd64</Filter>
-    </MASM>
+    <None Include="rdtsc\amd64\common.inc">
+      <Filter>Source Files\rdtsc\amd64</Filter>
+    </None>
+    <None Include="rdtsc\i386\common.inc">
+      <Filter>Source Files\rdtsc\i386</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="i386\common.inc">
-      <Filter>Source Files\i386</Filter>
-    </None>
-    <None Include="amd64\common.inc">
-      <Filter>Source Files\amd64</Filter>
-    </None>
+    <MASM Include="rdtsc\amd64\trap.asm">
+      <Filter>Source Files\rdtsc\amd64</Filter>
+    </MASM>
+    <MASM Include="rdtsc\i386\trap.asm">
+      <Filter>Source Files\rdtsc\i386</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

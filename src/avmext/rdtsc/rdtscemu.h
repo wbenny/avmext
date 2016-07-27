@@ -1,7 +1,7 @@
 #pragma once
-#include "ntinternal.h"
-
 #include <ntifs.h>
+
+#include "nt/ntinternal.h"
 
 typedef enum _AVM_RDTSC_EMULATION_METHOD_TYPE
 {
@@ -70,7 +70,7 @@ static const UCHAR AvmOpRdtscp[] = { 0x0F, 0x01, 0xF9 };
 extern ULONG_PTR AvmpRdtscEmulationTrap0DOriginalHandler;
 
 extern
-void __cdecl
+VOID __cdecl
 AvmpRdtscEmulationTrap0D(
   VOID
   );

@@ -92,17 +92,31 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <DisableSpecificWarnings>4054;4055;4201;4204;4214;4748;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <DisableSpecificWarnings>4054;4055;4201;4204;4214;4748;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Link>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <ClCompile>
+      <DisableSpecificWarnings>4054;4055;4201;4204;4214;4603;4627;4986;4987;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <DisableSpecificWarnings>4054;4055;4201;4204;4214;4603;4627;4986;4987;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
@@ -110,29 +124,51 @@
   <ItemGroup>
     <ClCompile Include="dispatch.c" />
     <ClCompile Include="entry.c" />
-    <ClCompile Include="ntinternal.c" />
-    <ClCompile Include="rdtscemup.c" />
-    <ClCompile Include="rdtscemu.c" />
+    <ClCompile Include="hook\hook.c" />
+    <ClCompile Include="hook\hookp.c" />
+    <ClCompile Include="image.c" />
+    <ClCompile Include="memory.c" />
+    <ClCompile Include="rdtsc\rdtscemu.c" />
+    <ClCompile Include="rdtsc\rdtscemup.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ntinternal.h" />
+    <ClInclude Include="hook\hook.h" />
     <ClInclude Include="dispatch.h" />
     <ClInclude Include="entry.h" />
-    <ClInclude Include="rdtscemu.h" />
+    <ClInclude Include="image.h" />
+    <ClInclude Include="memory.h" />
+    <ClInclude Include="nt\ntapi.h" />
+    <ClInclude Include="nt\ntinternal.h" />
+    <ClInclude Include="nt\rtlapi.h" />
+    <ClInclude Include="rdtsc\rdtscemu.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="amd64\trap.asm">
+    <None Include="rdtsc\amd64\common.inc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="rdtsc\i386\common.inc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="rdtsc\amd64\trap.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </MASM>
-    <MASM Include="i386\trap.asm">
+    <MASM Include="rdtsc\i386\trap.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </MASM>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="amd64\common.inc" />
-    <None Include="i386\common.inc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

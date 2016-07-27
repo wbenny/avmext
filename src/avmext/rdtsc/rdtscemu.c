@@ -1,7 +1,6 @@
 #include "rdtscemu.h"
-#include "ntinternal.h"
 
-#include <ntifs.h>
+#include "nt/ntinternal.h"
 
 #define AVM_GENERAL_PROTECTION_FAULT_INTERRUPT_VECTOR   (0x0D)
 
@@ -141,7 +140,7 @@ AvmRdtscEmulationTrap0D(
   return InstructionLength != 0;
 }
 
-#else
+#elif defined(_AMD64_)
 
 VOID
 NTAPI
@@ -178,7 +177,6 @@ AvmRdtscEmulationEmulate(
       break;
   }
 }
-
 
 //
 // Real Trap0D handler.
@@ -242,7 +240,6 @@ AvmRdtscEmulationTrap0D(
   //
   return InstructionLength != 0;
 }
-
 
 #endif
 
@@ -344,7 +341,7 @@ AvmRdtscEmulationInitialize(
   
   AvmRdtscEmulationConfiguration.TscValue = ReadTSC();
   ReadTSCP(&AvmRdtscEmulationConfiguration.TscAux);
-  
+
   AvmRdtscEmulationConfiguration.DeltaFrom = 10;
   AvmRdtscEmulationConfiguration.DeltaTo = 100;
   AvmRdtscEmulationConfiguration.TscAux = 20;

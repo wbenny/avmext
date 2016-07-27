@@ -1,9 +1,6 @@
 #pragma once
 #include <ntifs.h>
-
-#pragma warning (disable : 4201)
-#pragma warning (disable : 4204)
-#pragma warning (disable : 4214)
+#include <ndis.h>
 
 //
 // Inspired by WRK.
@@ -195,7 +192,6 @@ struct _AVM_KTRAP_FRAME64
   ULONG64 Rsp;
   USHORT SegSs;
   USHORT Fill3[1];
-
 };
 
 #if defined(_X86_)
@@ -206,22 +202,4 @@ typedef struct _AVM_KTRAP_FRAME32 AVM_KTRAP_FRAME, *PAVM_KTRAP_FRAME;
 typedef struct _AVM_KDESCRIPTOR64 AVM_KDESCRIPTOR, *PAVM_KDESCRIPTOR;
 typedef struct _AVM_KIDTENTRY64   AVM_KIDTENTRY,   *PAVM_KIDTENTRY;
 typedef struct _AVM_KTRAP_FRAME64 AVM_KTRAP_FRAME, *PAVM_KTRAP_FRAME;
-#else
-# error "Unknown architecture"
 #endif
-
-//
-// Initialize & destroy routines.
-//
-
-NTSTATUS
-NTAPI
-AvmNtInternalInitialize(
-  IN PDRIVER_OBJECT DriverObject
-  );
-
-VOID
-NTAPI
-AvmNtInternalDestroy(
-  IN PDRIVER_OBJECT DriverObject
-  );

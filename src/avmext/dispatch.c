@@ -1,6 +1,7 @@
 #include "dispatch.h"
+
 #include "entry.h"
-#include "rdtscemu.h"
+#include "rdtsc/rdtscemu.h"
 
 NTSTATUS
 NTAPI

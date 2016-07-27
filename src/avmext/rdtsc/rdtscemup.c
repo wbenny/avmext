@@ -1,8 +1,6 @@
 #include "rdtscemu.h"
-#include "ntinternal.h"
 
-#include <ntifs.h>
-#include <ndis.h>
+#include "nt/ntinternal.h"
 
 //
 // It is very unlikely that each CPU will have different Trap0D handlers.
@@ -91,7 +89,7 @@ AvmpRdtscEmulationHookInterruptEntry(
   EnableInterrupts();
 }
 
-#else
+#elif defined(_AMD64_)
 
 VOID
 NTAPI
