@@ -17,3 +17,11 @@ NTAPI
 RtlImageNtHeader(
   PVOID Base
   );
+
+NTSYSAPI
+PVOID
+NTAPI
+RtlPcToFileHeader(
+    IN PVOID PcValue,
+    OUT PVOID *BaseOfImage
+  );

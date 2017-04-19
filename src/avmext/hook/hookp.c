@@ -167,25 +167,9 @@ AvmpHookFindNtoskrnlBase(
   )
 {
   UNICODE_STRING RoutineName = RTL_CONSTANT_STRING(L"DbgPrint");
-  ULONG_PTR NtoskrnlBase = (ULONG_PTR)MmGetSystemRoutineAddress(&RoutineName);
-  NtoskrnlBase = (NtoskrnlBase & ~(PAGE_SIZE - 1));
+  PVOID NtoskrnlBase = MmGetSystemRoutineAddress(&RoutineName);
 
-  __try
-  {
-    //
-    // Look for "MZ".
-    //
-    while ((*(PUSHORT)NtoskrnlBase != IMAGE_DOS_SIGNATURE))
-    {
-      NtoskrnlBase -= PAGE_SIZE;
-    }
-  }
-  __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-    NtoskrnlBase = 0;
-  }
-
-  return (PVOID)NtoskrnlBase;
+  return RtlPcToFileHeader(NtoskrnlBase, &NtoskrnlBase);
 }
 
 PAVM_SERVICE_TABLE_DESCRIPTOR
