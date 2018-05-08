@@ -34,3 +34,11 @@ RtlPcToFileHeader(
   _In_ PVOID PcValue,
   _Out_ PVOID *BaseOfImage
   );
+
+NTSYSAPI
+PVOID
+NTAPI
+RtlPcToFileHeader(
+    IN PVOID PcValue,
+    OUT PVOID *BaseOfImage
+  );
