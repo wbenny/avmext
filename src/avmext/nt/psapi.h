@@ -1,0 +1,18 @@
+#pragma once
+#include <ntifs.h>
+
+//
+// Structures and function prototypes which are not included
+// in WDK.
+//
+
+//////////////////////////////////////////////////////////////////////////
+// Function prototypes.
+//////////////////////////////////////////////////////////////////////////
+
+NTSYSAPI
+HANDLE
+NTAPI
+PsGetProcessInheritedFromUniqueProcessId(
+  _In_ PEPROCESS Process
+  );

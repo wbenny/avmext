@@ -1,202 +1,138 @@
 #include "entry.h"
 
-#include "nt/ntinternal.h"
-#include "dispatch.h"
-#include "rdtsc/rdtscemu.h"
-#include "hook/hook.h"
+#include "patch/patch.h"
+#include "device/device.h"
 
 #pragma warning (disable : 4100)
 
-typedef NTSTATUS (NTAPI * pfnNtCreateFile)(
-    __out PHANDLE FileHandle,
-    __in ACCESS_MASK DesiredAccess,
-    __in POBJECT_ATTRIBUTES ObjectAttributes,
-    __out PIO_STATUS_BLOCK IoStatusBlock,
-    __in_opt PLARGE_INTEGER AllocationSize,
-    __in ULONG FileAttributes,
-    __in ULONG ShareAccess,
-    __in ULONG CreateDisposition,
-    __in ULONG CreateOptions,
-    __in_bcount_opt(EaLength) PVOID EaBuffer,
-    __in ULONG EaLength
-    );
+//////////////////////////////////////////////////////////////////////////
+// Variables.
+//////////////////////////////////////////////////////////////////////////
 
-typedef NTSTATUS (NTAPI * pfnNtOpenFile)(
-    __out PHANDLE FileHandle,
-    __in ACCESS_MASK DesiredAccess,
-    __in POBJECT_ATTRIBUTES ObjectAttributes,
-    __out PIO_STATUS_BLOCK IoStatusBlock,
-    __in ULONG ShareAccess,
-    __in ULONG OpenOptions
-    );
+PAVM_DESTROY_COMPONENT_ROUTINE AvmpDestroyComponentRoutineList[AVM_MAX_REGISTERED_COMPONENTS];
+LONG AvmpDestroyComponentRoutineCount = 0;
 
-typedef NTSTATUS (NTAPI * pfnNtReadVirtualMemory)(
-    __in HANDLE ProcessHandle,
-    __in_opt PVOID BaseAddress,
-    __out_bcount(BufferSize) PVOID Buffer,
-    __in SIZE_T BufferSize,
-    __out_opt PSIZE_T NumberOfBytesRead
-    );
+PDRIVER_OBJECT AvmDriverObject;
 
-
-typedef NTSTATUS (NTAPI * pfnNtWriteVirtualMemory)(
-    __in HANDLE ProcessHandle,
-    __in_opt PVOID BaseAddress,
-    __in_bcount(BufferSize) CONST VOID *Buffer,
-    __in SIZE_T BufferSize,
-    __out_opt PSIZE_T NumberOfBytesWritten
-    );
-
-PAVM_HOOK_ENTRY AvmHookEntryNtCreateFile = NULL;
-PAVM_HOOK_ENTRY AvmHookEntryNtOpenFile = NULL;
-PAVM_HOOK_ENTRY AvmHookEntryNtReadVirtualMemory = NULL;
-PAVM_HOOK_ENTRY AvmHookEntryNtWriteVirtualMemory = NULL;
-
-NTSTATUS
-AvmHookNtCreateFile(
-  __out PHANDLE FileHandle,
-  __in ACCESS_MASK DesiredAccess,
-  __in POBJECT_ATTRIBUTES ObjectAttributes,
-  __out PIO_STATUS_BLOCK IoStatusBlock,
-  __in_opt PLARGE_INTEGER AllocationSize,
-  __in ULONG FileAttributes,
-  __in ULONG ShareAccess,
-  __in ULONG CreateDisposition,
-  __in ULONG CreateOptions,
-  __in_bcount_opt(EaLength) PVOID EaBuffer,
-  __in ULONG EaLength
-  )
-{
-  return ((pfnNtCreateFile)(AvmHookEntryNtCreateFile->OriginalRoutineAddress))(
-    FileHandle,
-    DesiredAccess,
-    ObjectAttributes,
-    IoStatusBlock,
-    AllocationSize,
-    FileAttributes,
-    ShareAccess,
-    CreateDisposition,
-    CreateOptions,
-    EaBuffer,
-    EaLength);
-}
-
-NTSTATUS
-AvmHookNtOpenFile(
-  __out PHANDLE FileHandle,
-  __in ACCESS_MASK DesiredAccess,
-  __in POBJECT_ATTRIBUTES ObjectAttributes,
-  __out PIO_STATUS_BLOCK IoStatusBlock,
-  __in ULONG ShareAccess,
-  __in ULONG OpenOptions
-  )
-{
-  return ((pfnNtOpenFile)(AvmHookEntryNtOpenFile->OriginalRoutineAddress))(
-    FileHandle,
-    DesiredAccess,
-    ObjectAttributes,
-    IoStatusBlock,
-    ShareAccess,
-    OpenOptions);
-}
-
-NTSTATUS
-AvmHookNtReadVirtualMemory(
-  __in HANDLE ProcessHandle,
-  __in_opt PVOID BaseAddress,
-  __out_bcount(BufferSize) PVOID Buffer,
-  __in SIZE_T BufferSize,
-  __out_opt PSIZE_T NumberOfBytesRead
-  )
-{
-  return ((pfnNtReadVirtualMemory)(AvmHookEntryNtReadVirtualMemory->OriginalRoutineAddress))(
-    ProcessHandle,
-    BaseAddress,
-    Buffer,
-    BufferSize,
-    NumberOfBytesRead);
-}
-
-NTSTATUS
-AvmHookNtWriteVirtualMemory(
-  __in HANDLE ProcessHandle,
-  __in_opt PVOID BaseAddress,
-  __in_bcount(BufferSize) CONST VOID *Buffer,
-  __in SIZE_T BufferSize,
-  __out_opt PSIZE_T NumberOfBytesWritten
-  )
-{
-  return ((pfnNtWriteVirtualMemory)(AvmHookEntryNtWriteVirtualMemory->OriginalRoutineAddress))(
-    ProcessHandle,
-    BaseAddress,
-    Buffer,
-    BufferSize,
-    NumberOfBytesWritten);
-}
+//////////////////////////////////////////////////////////////////////////
+// Public functions.
+//////////////////////////////////////////////////////////////////////////
 
 NTSTATUS
 NTAPI
 AvmInitialize(
-  IN PDRIVER_OBJECT DriverObject
+  _In_ PDRIVER_OBJECT DriverObject
   )
 {
-  NTSTATUS Status;
+  AvmDbgPrint("[INFO] AvmInitialize >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 
-  Status = AvmHookInitialize(DriverObject);
+#pragma prefast(push)
+#pragma prefast(disable:__WARNING_INACCESSIBLE_MEMBER, "Usage of DriverObject members outside of the DriverEntry")
 
-  ANSI_STRING NtCreateFileRoutineName = RTL_CONSTANT_STRING("NtCreateFile");
-  AvmHookSSDTHook(&NtCreateFileRoutineName, (PVOID)&AvmHookNtCreateFile, &AvmHookEntryNtCreateFile);
-
-  ANSI_STRING NtOpenFileRoutineName = RTL_CONSTANT_STRING("NtOpenFile");
-  AvmHookSSDTHook(&NtOpenFileRoutineName, (PVOID)&AvmHookNtOpenFile, &AvmHookEntryNtOpenFile);
-
-  ANSI_STRING NtReadVirtualMemoryRoutineName = RTL_CONSTANT_STRING("NtReadVirtualMemory");
-  AvmHookSSDTHook(&NtReadVirtualMemoryRoutineName, (PVOID)&AvmHookNtReadVirtualMemory, &AvmHookEntryNtReadVirtualMemory);
-
-  ANSI_STRING NtWriteVirtualMemoryRoutineName = RTL_CONSTANT_STRING("NtWriteVirtualMemory");
-  AvmHookSSDTHook(&NtWriteVirtualMemoryRoutineName, (PVOID)&AvmHookNtWriteVirtualMemory, &AvmHookEntryNtWriteVirtualMemory);
-
-  if (!NT_SUCCESS(Status))
+  for (ULONG Index = 0; Index <= IRP_MJ_MAXIMUM_FUNCTION; Index++)
   {
-    return Status;
+    DriverObject->MajorFunction[Index] = &AvmpDriverDispatch;
   }
 
-  Status = AvmDispatchInitialize(DriverObject);
+  DriverObject->DriverUnload = &AvmDestroy;
 
-  if (!NT_SUCCESS(Status))
-  {
-    return Status;
-  }
+#pragma prefast(pop)
 
-  Status = AvmRdtscEmulationInitialize(DriverObject);
-
-  if (!NT_SUCCESS(Status))
-  {
-    return Status;
-  }
-
-  return Status;
+  return AvmDeviceInitialize(DriverObject);
 }
 
 VOID
 NTAPI
 AvmDestroy(
-  IN PDRIVER_OBJECT DriverObject
+  _In_ PDRIVER_OBJECT DriverObject
   )
 {
-  AvmRdtscEmulationDestroy(DriverObject);
-  AvmDispatchDestroy(DriverObject);
-  AvmHookDestroy(DriverObject);
+  AvmDbgPrint("[INFO] AvmDestroy <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+
+  LONG Index = AvmpDestroyComponentRoutineCount;
+
+  while (Index-- > 0)
+  {
+    AvmpDestroyComponentRoutineList[Index](DriverObject);
+  }
 }
+
+VOID
+NTAPI
+AvmRegisterDestroyComponentRoutine(
+  _In_ PAVM_DESTROY_COMPONENT_ROUTINE DestroyComponentRoutine
+  )
+{
+  NT_ASSERT(AvmpDestroyComponentRoutineCount < AVM_MAX_REGISTERED_COMPONENTS);
+
+  AvmpDestroyComponentRoutineList[AvmpDestroyComponentRoutineCount] = DestroyComponentRoutine;
+  AvmpDestroyComponentRoutineCount += 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Private functions.
+//////////////////////////////////////////////////////////////////////////
+
+NTSTATUS
+NTAPI
+AvmpDriverDispatch(
+  _In_ PDEVICE_OBJECT DeviceObject,
+  _In_ PIRP Irp
+  )
+{
+  PDRIVER_DISPATCH* DispatchRoutines;
+  DispatchRoutines = DeviceObject->DeviceExtension;
+
+  if (DispatchRoutines)
+  {
+    PIO_STACK_LOCATION IoCurrentStack;
+    IoCurrentStack = IoGetCurrentIrpStackLocation(Irp);
+
+    if (DispatchRoutines[IoCurrentStack->MajorFunction])
+    {
+      return DispatchRoutines[IoCurrentStack->MajorFunction](DeviceObject, Irp);
+    }
+  }
+
+  Irp->IoStatus.Status = STATUS_INVALID_DEVICE_REQUEST;
+  IoCompleteRequest(Irp, IO_NO_INCREMENT);
+  return STATUS_INVALID_DEVICE_REQUEST;
+}
+
+VOID
+NTAPI
+AvmpDbgPrintV(
+  _In_z_ _Printf_format_string_ PCSTR Format,
+  va_list Args
+  )
+{
+
+}
+
+VOID
+__cdecl
+AvmpDbgPrint(
+  _In_z_ _Printf_format_string_ PCSTR Format,
+  ...
+  )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Driver entry-point.
+//////////////////////////////////////////////////////////////////////////
 
 NTSTATUS
 NTAPI
 DriverEntry(
-  IN PDRIVER_OBJECT DriverObject,
-  IN PUNICODE_STRING AvmgistryPath
+  _In_ PDRIVER_OBJECT DriverObject,
+  _In_ PUNICODE_STRING RegistryPath
   )
 {
-  UNREFERENCED_PARAMETER(AvmgistryPath);
+  UNREFERENCED_PARAMETER(RegistryPath);
+
+  AvmDriverObject = DriverObject;
 
   return AvmInitialize(DriverObject);
 }

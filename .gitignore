@@ -9,3 +9,6 @@ bin/**
 .vs/**
 *.VC.db
 *.VC.opendb
+
+src/avmcs/bin/**
+src/avmcs/obj/**

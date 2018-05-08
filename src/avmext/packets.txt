@@ -1,0 +1,45 @@
+
+Packet definitions
+==================
+
+Basic types:
+------------
+
+enum VARIANT_TYPE
+{
+  VOID                  = 0,
+  BOOL                  = 1,
+  INTEGER               = 2,
+  UNSIGNED_INTEGER      = 3,
+  FLOAT                 = 4,
+  BINARY                = 5, // Implies AEVT_HINT_PROBE.
+  STRING                = 6, // Implies AEVT_HINT_PROBE.
+  UNICODE_STRING        = 7, // Implies AEVT_HINT_PROBE.
+  ENUM                  = 8,
+}
+
+struct VARIANT
+{
+  u32  RequestedSize;
+  u32  Size;
+  u32  Type;
+  u8   Buffer[];
+};
+
+Function definitions:
+---------------------
+
+struct FUNCTION_DEFINITION
+{
+  VARIANT[STRING,*] FunctionCategory;
+  VARIANT[STRING,*] FunctionName;
+  VARIANT[INTEGER,4] FunctionId;
+};
+
+VARIANT[INTEGER,4] FunctionCount;
+FUNCTION_DEFINITION Functions[FunctionCount];
+
+
+
+
+

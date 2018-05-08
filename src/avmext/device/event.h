@@ -1,48 +1,7 @@
-#pragma once
-#include <windows.h>
+﻿#pragma once
+#include "hook.h"                 // AVM_HOOK_DEFINITION.
 
-#pragma warning (disable : 4200)
-
-typedef struct _STRING {
-  USHORT Length;
-  USHORT MaximumLength;
-  PCHAR  Buffer;
-} ANSI_STRING, *PANSI_STRING;
-
-//////////////////////////////////////////////////////////////////////////
-// Definitions.
-//////////////////////////////////////////////////////////////////////////
-
-#define AVM_DEVICE_NAME           L"\\Device\\AvmExt"
-#define AVM_DEVICE_SYMBOLIC_NAME  L"\\??\\AvmExt"
-
-#define IOCTL_AVM_HOOK_ENABLE                                               \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x800, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_AVM_HOOK_DISABLE                                              \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_AVM_HOOK_ADD_WATCHED_PROCESS_ID                               \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x802, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_AVM_HOOK_REMOVE_WATCHED_PROCESS_ID                            \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x803, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_AVM_HOOK_REMOVE_ALL_WATCHED_PROCESS_IDS                       \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x804, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_AVM_HOOK_SET                                                  \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x805, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_AVM_HOOK_GET_FUNCTION_DEFINITION_LIST                         \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x806, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_AVM_HOOK_GET_FUNCTION_DEFINITION_LIST_SIZE                    \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x807, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_AVM_HOOK_UNSET                                                  \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x808, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
+#include <ntifs.h>
 
 //////////////////////////////////////////////////////////////////////////
 // Enumerations.
@@ -111,23 +70,9 @@ typedef struct _AVM_EVENT_VARIANT
   UCHAR  Buffer[];
 } AVM_EVENT_VARIANT, *PAVM_EVENT_VARIANT;
 
-//
-// Function call.
-//
-
-typedef struct _AVM_EVENT_ENUM_DEFINITION
-{
-  ANSI_STRING EnumName;
-  ULONG EnumId;
-  ULONG EnumType; // AVM_EVENT_VARIANT_TYPE
-  ULONG EnumTypeSize;
-
-  struct
-  {
-    ANSI_STRING Name;
-    ULONG Value;
-  } Items[];
-} AVM_EVENT_ENUM_DEFINITION, *PAVM_EVENT_ENUM_DEFINITION;
+//////////////////////////////////////////////////////////////////////////
+// Enumerations.
+//////////////////////////////////////////////////////////////////////////
 
 typedef struct _AVM_EVENT_FUNCTION_CALL
 {
@@ -225,3 +170,153 @@ typedef struct _AVM_EVENT
   //
   UCHAR EventData[];
 } AVM_EVENT, *PAVM_EVENT;
+
+//////////////////////////////////////////////////////////////////////////
+// Public functions.
+//////////////////////////////////////////////////////////////////////////
+
+PAVM_EVENT
+NTAPI
+AvmEventAllocate(
+  ULONG EventType,
+  ULONG EventSize
+  );
+
+VOID
+NTAPI
+AvmEventFree(
+  PAVM_EVENT Event
+  );
+
+//
+// Event types.
+//
+
+PAVM_EVENT
+NTAPI
+AvmEventFunctionCallCreate(
+  _In_ PAVM_HOOK_DEFINITION FunctionDefinition,
+  _In_ NTSTATUS ReturnValue,
+  _In_ va_list Args
+  );
+
+PAVM_EVENT
+NTAPI
+AvmEventProcessCreate(
+  _In_ BOOLEAN Created,
+  _In_ HANDLE ProcessId,
+  _In_ HANDLE ParentProcessId,
+  _In_opt_ PCUNICODE_STRING ImageFileName
+  );
+
+PAVM_EVENT
+NTAPI
+AvmEventThreadCreate(
+  _In_ BOOLEAN Created,
+  _In_ HANDLE ProcessId,
+  _In_ HANDLE ThreadId
+  );
+
+PAVM_EVENT
+NTAPI
+AvmEventLoadImageCreate(
+  _In_ HANDLE ProcessId,
+  _In_ PUNICODE_STRING FullImageName,
+  _In_ PIMAGE_INFO ImageInfo
+  );
+
+//////////////////////////////////////////////////////////////////////////
+// Private functions.
+//////////////////////////////////////////////////////////////////////////
+
+//
+// Buffer manipulation.
+//
+
+VOID
+NTAPI
+AvmpEventBufferWrite(
+  PVOID* EventData,
+  ULONG Type,
+  ULONG Size,
+  PVOID Data,
+  BOOLEAN Simulate
+  );
+
+VOID
+NTAPI
+AvmpEventBufferIndirectWrite(
+  PVOID* EventData,
+  ULONG Type,
+  ULONG Size,
+  PVOID Data,
+  HANDLE ProcessHandle,
+  BOOLEAN Simulate
+  );
+
+//
+// Functions description.
+//
+
+typedef struct _AVM_EVENT_FUNCTION_CALL_PARAMETER
+{
+  ULONG ParameterType;
+
+  union
+  {
+    ULONG ParameterSize;
+    PAVM_HOOK_DEFINITION EnumDefinition;
+  };
+
+  PCHAR ParameterName;
+  PCHAR ParameterValue;
+  HANDLE ProcessHandle;
+} AVM_EVENT_FUNCTION_CALL_PARAMETER, *PAVM_EVENT_FUNCTION_CALL_PARAMETER;
+
+typedef VOID (NTAPI *PAVM_EVENT_FUNCTION_CALL_PARAMETER_ROUTINE)(
+  _In_ PAVM_EVENT_FUNCTION_CALL_PARAMETER ParameterStruct,
+  _Inout_ PVOID* EventPosition,
+  _In_ BOOLEAN Simulate
+  );
+
+VOID
+NTAPI
+AvmpEventEnumWrite(
+  PVOID* EventData,
+  PAVM_HOOK_DEFINITION EnumDefinition,
+  BOOLEAN Simulate
+  );
+
+ULONG
+NTAPI
+AvmpEventFunctionCallWrite(
+  _In_ PAVM_HOOK_DEFINITION FunctionDefinition,
+  PAVM_EVENT_FUNCTION_CALL EventData,
+  PVOID* EventPosition,
+  va_list Args
+  );
+
+ULONG
+NTAPI
+AvmpEventFunctionCallEnumerateParameters(
+  _In_ va_list Args,
+  _In_ PAVM_EVENT_FUNCTION_CALL_PARAMETER_ROUTINE EnumRoutine,
+  _Inout_ PVOID* EventPosition,
+  _In_ BOOLEAN Simulate
+  );
+
+VOID
+NTAPI
+AvmpEventFunctionCallWriteParameterDescription(
+  _In_ PAVM_EVENT_FUNCTION_CALL_PARAMETER ParameterStruct,
+  _Inout_ PVOID* EventPosition,
+  _In_ BOOLEAN Simulate
+  );
+
+VOID
+NTAPI
+AvmpEventFunctionCallWriteParameters(
+  _In_ PAVM_EVENT_FUNCTION_CALL_PARAMETER ParameterStruct,
+  _Inout_ PVOID* EventPosition,
+  _In_ BOOLEAN Simulate
+  );

@@ -1,7 +1,8 @@
 #include "hook.h"
 
-#include "memory.h"
-#include "image.h"
+#include "entry.h"
+#include "utils/memory.h"
+#include "utils/image.h"
 
 PAVM_SERVICE_TABLE_DESCRIPTOR AvmHookServiceDescriptorTable = NULL;
 PVOID AvmHookNtoskrnlBaseAddress = NULL;
@@ -135,7 +136,7 @@ AvmHookSSDTHook(
   HookEntryResult->OriginalRoutineAddress = SyscallRoutineAddress;
   HookEntryResult->NewRoutineAddress = NewRoutineAddress;
   HookEntryResult->SyscallNumber = SyscallNumber;
-  InsertHeadList(&AvmHookList, &HookEntryResult->ListEntry);
+  InsertTailList(&AvmHookList, &HookEntryResult->ListEntry);
 
   *HookEntry = HookEntryResult;
 
@@ -233,6 +234,8 @@ AvmHookInitialize(
 
   InitializeListHead(&AvmHookList);
 
+  AvmRegisterDestroyComponentRoutine(&AvmHookDestroy);
+
   return STATUS_SUCCESS;
 }
 
@@ -244,21 +247,5 @@ AvmHookDestroy(
 {
   UNREFERENCED_PARAMETER(DriverObject);
 
-  //
-  // Unhook all hooked functions.
-  //
-  __debugbreak();
-  PLIST_ENTRY NextEntry = AvmHookList.Blink;
-
-  while (NextEntry != &AvmHookList)
-  {
-    PAVM_HOOK_ENTRY HookEntry = CONTAINING_RECORD(
-      NextEntry,
-      AVM_HOOK_ENTRY,
-      ListEntry);
-
-    AvmHookSSDTUnhook(HookEntry);
-
-    NextEntry = AvmHookList.Blink;
-  }
+  AvmHookDisable();
 }

@@ -34,9 +34,10 @@ C_ASSERT(sizeof(AVM_HOOK_STUB) == AVM_HOOK_STUB_SIZE);
 
 typedef struct _AVM_HOOK_ENTRY
 {
+  LIST_ENTRY ListEntry;
+
   PVOID OriginalRoutineAddress;
   PVOID NewRoutineAddress;
-  LIST_ENTRY ListEntry;
   ULONG SyscallNumber;
 #if defined (_AMD64_)
   AVM_HOOK_STUB OriginalCaveData;
@@ -105,6 +106,21 @@ AvmHookSSDTUnhook(
   IN PAVM_HOOK_ENTRY HookEntry
   );
 
+//
+// Initialize & destroy routines.
+//
+
+NTSTATUS
+NTAPI
+AvmHookEnable(
+  VOID
+  );
+
+VOID
+NTAPI
+AvmHookDisable(
+  VOID
+  );
 
 //
 // Initialize & destroy routines.

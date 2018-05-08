@@ -1,6 +1,15 @@
 #pragma once
 #include <ntifs.h>
 
+//
+// Structures and function prototypes which are not included
+// in WDK.
+//
+
+//////////////////////////////////////////////////////////////////////////
+// Enumerations.
+//////////////////////////////////////////////////////////////////////////
+
 typedef enum _SECTION_INFORMATION_CLASS
 {
   SectionBasicInformation,
@@ -8,6 +17,10 @@ typedef enum _SECTION_INFORMATION_CLASS
   SectionRelocationInformation,
   MaxSectionInfoClass
 } SECTION_INFORMATION_CLASS;
+
+//////////////////////////////////////////////////////////////////////////
+// Structures.
+//////////////////////////////////////////////////////////////////////////
 
 typedef struct _SECTION_IMAGE_INFORMATION
 {
@@ -36,22 +49,17 @@ typedef struct _SECTION_IMAGE_INFORMATION
   ULONG Reserved[1];
 } SECTION_IMAGE_INFORMATION, *PSECTION_IMAGE_INFORMATION;
 
-NTSYSAPI
-NTSTATUS
-NTAPI
-ZwOpenSection(
-  PHANDLE SectionHandle,
-  ACCESS_MASK DesiredAccess,
-  POBJECT_ATTRIBUTES ObjectAttributes
-  );
+//////////////////////////////////////////////////////////////////////////
+// Function prototypes.
+//////////////////////////////////////////////////////////////////////////
 
 NTSYSAPI
 NTSTATUS
 NTAPI
 ZwQuerySection(
-  HANDLE SectionHandle,
-  SECTION_INFORMATION_CLASS SectionInformationClass,
-  PVOID SectionInformation,
-  SIZE_T SectionInformationLength,
-  PSIZE_T ReturnLength
+  _In_ HANDLE SectionHandle,
+  _In_ SECTION_INFORMATION_CLASS SectionInformationClass,
+  _Out_writes_bytes_(SectionInformationLength) PVOID SectionInformation,
+  _In_ SIZE_T SectionInformationLength,
+  _Out_opt_ PSIZE_T ReturnLength
   );
